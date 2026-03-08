@@ -32,7 +32,13 @@ function Loader() {
 
 /* -------------------- Robot -------------------- */
 
-function RobotModel() {
+function RobotModel({
+  isMobile,
+  isTablet,
+}: {
+  isMobile: boolean;
+  isTablet: boolean;
+}) {
   const group = useRef<THREE.Group>(null);
   const [visible, setVisible] = useState(false);
   const fadeComplete = useRef(false);
@@ -108,9 +114,17 @@ function RobotModel() {
     }
   });
 
+  const modelScale = isMobile ? 1.14 : isTablet ? 1.06 : 1.12;
+  const modelY = isMobile ? -1.12 : isTablet ? -1.18 : -1.3;
+
   return (
     <Center>
-      <primitive ref={group} object={scene} scale={1.2} position={[0, -1, 0]} />
+      <primitive
+        ref={group}
+        object={scene}
+        scale={modelScale}
+        position={[0, modelY, 0]}
+      />
     </Center>
   );
 }
@@ -176,17 +190,18 @@ const fadeUp: Variants = {
 /* -------------------- Hero Section -------------------- */
 
 export default function Hero() {
-  const [isMobile, setIsMobile] = useState(false);
+  const [viewportWidth, setViewportWidth] = useState(1200);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 767px)");
-    const updateMobileState = () => setIsMobile(mediaQuery.matches);
+    const updateViewport = () => setViewportWidth(window.innerWidth);
+    updateViewport();
+    window.addEventListener("resize", updateViewport);
 
-    updateMobileState();
-    mediaQuery.addEventListener("change", updateMobileState);
-
-    return () => mediaQuery.removeEventListener("change", updateMobileState);
+    return () => window.removeEventListener("resize", updateViewport);
   }, []);
+
+  const isMobile = viewportWidth < 768;
+  const isTablet = viewportWidth >= 768 && viewportWidth < 1024;
 
   const scrollToContact = () => {
     smoothScrollToId("contact");
@@ -302,15 +317,17 @@ export default function Hero() {
 
             <div className="
             w-full
-            max-w-[320px]
+            max-w-[360px]
             sm:max-w-[420px]
-            md:max-w-[500px]
-            lg:max-w-[550px]
+            md:max-w-[520px]
+            lg:max-w-[600px]
+            xl:max-w-[640px]
 
-            h-[320px]
-            sm:h-[380px]
-            md:h-[480px]
-            lg:h-[520px]
+            h-[380px]
+            sm:h-[440px]
+            md:h-[520px]
+            lg:h-[600px]
+            xl:h-[640px]
             cursor-grab
             ">
 
@@ -318,24 +335,28 @@ export default function Hero() {
                 shadows={!isMobile}
                 dpr={isMobile ? [1, 1] : [1, 2]}
                 gl={{ antialias: !isMobile, powerPreference: "high-performance" }}
-                camera={{ position: [0, 1.5, 6], fov: 35 }}
+                camera={{
+                  position: [0, isMobile ? 1.25 : isTablet ? 1.35 : 1.5, isMobile ? 6.8 : isTablet ? 7 : 6.6],
+                  fov: isMobile ? 46 : isTablet ? 46 : 42,
+                }}
               >
                 <ambientLight intensity={0.6} />
 
                 <directionalLight
-                  position={[5, 10, 5]}
-                  intensity={2}
+                  position={[0, 12, 1]}
+                  intensity={1.9}
+                  shadow-bias={-0.0001}
                   castShadow={!isMobile}
                 />
 
                 <Suspense fallback={<Loader />}>
-                  <RobotModel />
+                  <RobotModel isMobile={isMobile} isTablet={isTablet} />
                   <Environment preset="city" />
 
                   {!isMobile && (
                     <mesh
                       rotation={[-Math.PI / 2, 0, 0]}
-                      position={[0, -1.5, 0]}
+                      position={[0, isTablet ? -1.2 : -1.25, 0]}
                       receiveShadow
                     >
                       <planeGeometry args={[10, 10]} />
