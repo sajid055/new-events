@@ -35,6 +35,7 @@ function Loader() {
 function RobotModel() {
   const group = useRef<THREE.Group>(null);
   const [visible, setVisible] = useState(false);
+  const fadeComplete = useRef(false);
 
   const { scene, animations } = useGLTF("/models/robot.glb");
   const { actions } = useAnimations(animations, group);
@@ -83,15 +84,24 @@ function RobotModel() {
   useFrame(() => {
     if (!group.current) return;
 
-    group.current.traverse((child) => {
-      if (!isMesh(child) || !visible || !child.material) return;
+    if (visible && !fadeComplete.current) {
+      let hasFadingMaterial = false;
 
-      forEachMaterial(child.material, (mat) => {
-        if (mat.transparent && mat.opacity < 1) {
-          mat.opacity = Math.min(1, mat.opacity + 0.02);
-        }
+      group.current.traverse((child) => {
+        if (!isMesh(child) || !child.material) return;
+
+        forEachMaterial(child.material, (mat) => {
+          if (mat.transparent && mat.opacity < 1) {
+            mat.opacity = Math.min(1, mat.opacity + 0.02);
+            if (mat.opacity < 1) hasFadingMaterial = true;
+          }
+        });
       });
-    });
+
+      if (!hasFadingMaterial) {
+        fadeComplete.current = true;
+      }
+    }
 
     if (group.current) {
       group.current.rotation.y += 0.002;
@@ -166,6 +176,18 @@ const fadeUp: Variants = {
 /* -------------------- Hero Section -------------------- */
 
 export default function Hero() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 767px)");
+    const updateMobileState = () => setIsMobile(mediaQuery.matches);
+
+    updateMobileState();
+    mediaQuery.addEventListener("change", updateMobileState);
+
+    return () => mediaQuery.removeEventListener("change", updateMobileState);
+  }, []);
+
   const scrollToContact = () => {
     smoothScrollToId("contact");
   };
@@ -292,27 +314,34 @@ export default function Hero() {
             cursor-grab
             ">
 
-              <Canvas shadows camera={{ position: [0, 1.5, 6], fov: 35 }}>
+              <Canvas
+                shadows={!isMobile}
+                dpr={isMobile ? [1, 1] : [1, 2]}
+                gl={{ antialias: !isMobile, powerPreference: "high-performance" }}
+                camera={{ position: [0, 1.5, 6], fov: 35 }}
+              >
                 <ambientLight intensity={0.6} />
 
                 <directionalLight
                   position={[5, 10, 5]}
                   intensity={2}
-                  castShadow
+                  castShadow={!isMobile}
                 />
 
                 <Suspense fallback={<Loader />}>
                   <RobotModel />
                   <Environment preset="city" />
 
-                  <mesh
-                    rotation={[-Math.PI / 2, 0, 0]}
-                    position={[0, -1.5, 0]}
-                    receiveShadow
-                  >
-                    <planeGeometry args={[10, 10]} />
-                    <shadowMaterial opacity={0.3} />
-                  </mesh>
+                  {!isMobile && (
+                    <mesh
+                      rotation={[-Math.PI / 2, 0, 0]}
+                      position={[0, -1.5, 0]}
+                      receiveShadow
+                    >
+                      <planeGeometry args={[10, 10]} />
+                      <shadowMaterial opacity={0.3} />
+                    </mesh>
+                  )}
 
                 </Suspense>
 
