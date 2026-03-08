@@ -40,26 +40,12 @@ function RobotModel({
   isTablet: boolean;
 }) {
   const group = useRef<THREE.Group>(null);
-  const [visible, setVisible] = useState(false);
-  const fadeComplete = useRef(false);
 
   const { scene, animations } = useGLTF("/models/robot.glb");
   const { actions } = useAnimations(animations, group);
 
   const isMesh = (object: THREE.Object3D): object is THREE.Mesh => {
     return (object as THREE.Mesh).isMesh === true;
-  };
-
-  const forEachMaterial = (
-    material: THREE.Material | THREE.Material[],
-    callback: (mat: THREE.Material) => void
-  ) => {
-    if (Array.isArray(material)) {
-      material.forEach(callback);
-      return;
-    }
-
-    callback(material);
   };
 
   useEffect(() => {
@@ -73,49 +59,19 @@ function RobotModel({
       if (isMesh(child)) {
         child.castShadow = true;
         child.receiveShadow = true;
-
-        if (child.material) {
-          forEachMaterial(child.material, (mat) => {
-            mat.transparent = true;
-            mat.opacity = 0;
-          });
-        }
       }
     });
-
-    const timer = setTimeout(() => setVisible(true), 200);
-    return () => clearTimeout(timer);
   }, [actions, scene]);
 
+  /* ✅ Desktop rotation only */
+
   useFrame(() => {
-    if (!group.current) return;
-
-    if (visible && !fadeComplete.current) {
-      let hasFadingMaterial = false;
-
-      group.current.traverse((child) => {
-        if (!isMesh(child) || !child.material) return;
-
-        forEachMaterial(child.material, (mat) => {
-          if (mat.transparent && mat.opacity < 1) {
-            mat.opacity = Math.min(1, mat.opacity + 0.02);
-            if (mat.opacity < 1) hasFadingMaterial = true;
-          }
-        });
-      });
-
-      if (!hasFadingMaterial) {
-        fadeComplete.current = true;
-      }
-    }
-
-    if (group.current) {
-      group.current.rotation.y += 0.002;
-    }
+    if (!group.current || isMobile) return;
+    group.current.rotation.y += 0.002;
   });
 
-  const modelScale = isMobile ? 1.14 : isTablet ? 1.06 : 1.12;
-  const modelY = isMobile ? -1.12 : isTablet ? -1.18 : -1.3;
+  const modelScale = isMobile ? 1.08 : isTablet ? 1.06 : 1.12;
+  const modelY = isMobile ? -0.8 : isTablet ? -0.7 : -0.9;
 
   return (
     <Center>
@@ -212,7 +168,7 @@ export default function Hero() {
 
       <div className="max-w-7xl mx-auto w-full px-4 sm:px-8 lg:px-12">
 
-        <div className="flex flex-col-reverse lg:grid lg:grid-cols-2 items-center gap-10 lg:gap-12">
+        <div className="flex flex-col-reverse items-center gap-10 lg:grid lg:grid-cols-2 lg:items-start lg:gap-12">
 
           {/* LEFT TEXT */}
 
@@ -220,23 +176,12 @@ export default function Hero() {
             variants={container}
             initial="hidden"
             animate="show"
-            className="flex flex-col justify-center
-            text-center lg:text-left
-            max-w-2xl mx-auto lg:mx-0"
+            className="flex flex-col justify-center text-center lg:text-left max-w-2xl mx-auto lg:mx-0 lg:self-start"
           >
 
             <motion.div
               variants={fadeUp}
-              className="inline-flex items-center gap-2
-              px-3 sm:px-4 py-2
-              rounded-full
-              bg-blue-100
-              text-blue-600
-              text-xs sm:text-sm
-              font-medium
-              w-fit max-w-full
-              text-center
-              mx-auto lg:mx-0"
+              className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-blue-100 text-blue-600 text-xs sm:text-sm font-medium w-fit max-w-full text-center mx-auto lg:mx-0"
             >
               <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
               Trusted by 10,000+ Event Organizers
@@ -244,18 +189,8 @@ export default function Hero() {
 
             <motion.h1
               variants={fadeUp}
-              className="
-              mt-6
-              font-bold
-              text-gray-900
-              leading-tight
-
-              text-3xl
-              sm:text-4xl
-              md:text-5xl
-              lg:text-6xl
-              xl:text-7xl
-              "
+              className="mt-6 font-bold text-gray-900 leading-tight
+              text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl"
             >
               MiraiEvents <br />
               Management,
@@ -267,18 +202,8 @@ export default function Hero() {
 
             <motion.p
               variants={fadeUp}
-              className="
-              mt-6
-              text-gray-600
-              leading-relaxed
-
-              text-sm
-              sm:text-base
-              md:text-lg
-
-              max-w-xl
-              mx-auto lg:mx-0
-              "
+              className="mt-0 text-gray-600 leading-relaxed
+              text-sm sm:text-base md:text-lg max-w-xl mx-auto lg:mx-0"
             >
               MiraiEvents all-in-one event management software simplifies event
               planning and elevates the attendee experience.
@@ -289,21 +214,9 @@ export default function Hero() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={scrollToContact}
-              className="
-              mt-8
-              px-8 py-4
-              bg-white
-              rounded-full
-              shadow-md
-              text-gray-900
-              font-medium
-
-              flex items-center gap-2
-              justify-center lg:justify-start
-
-              w-full sm:w-fit
-              mx-auto lg:mx-0
-              "
+              className="mt-8 px-8 py-4 bg-white rounded-full shadow-md text-gray-900 font-medium
+              flex items-center gap-2 justify-center lg:justify-start
+              w-full sm:w-fit mx-auto lg:mx-0"
             >
               Get Started
               <ArrowDown size={22} />
@@ -313,7 +226,7 @@ export default function Hero() {
 
           {/* RIGHT ROBOT */}
 
-          <div className="w-full flex items-center justify-center mt-8 lg:mt-0">
+          <div className="w-full flex items-center justify-center -mt-10 lg:mt-0 lg:self-start">
 
             <div className="
             w-full
@@ -323,7 +236,7 @@ export default function Hero() {
             lg:max-w-[600px]
             xl:max-w-[640px]
 
-            h-[380px]
+            h-[320px]
             sm:h-[440px]
             md:h-[520px]
             lg:h-[600px]
@@ -335,11 +248,15 @@ export default function Hero() {
                 shadows={!isMobile}
                 dpr={isMobile ? [1, 1] : [1, 2]}
                 gl={{ antialias: !isMobile, powerPreference: "high-performance" }}
+
+                /* ✅ Mobile Zoom Camera */
+
                 camera={{
-                  position: [0, isMobile ? 1.25 : isTablet ? 1.35 : 1.5, isMobile ? 6.8 : isTablet ? 7 : 6.6],
-                  fov: isMobile ? 46 : isTablet ? 46 : 42,
+                  position: [0, isMobile ? 1 : isTablet ? 1.35 : 1.5, isMobile ? 5.2 : isTablet ? 7 : 6.6],
+                  fov: isMobile ? 45 : isTablet ? 46 : 42,
                 }}
               >
+
                 <ambientLight intensity={0.6} />
 
                 <directionalLight
@@ -356,17 +273,22 @@ export default function Hero() {
                   {!isMobile && (
                     <mesh
                       rotation={[-Math.PI / 2, 0, 0]}
-                      position={[0, isTablet ? -1.2 : -1.25, 0]}
+                      position={[0, isTablet ? -1.26 : -1.58, 0]}
                       receiveShadow
                     >
                       <planeGeometry args={[10, 10]} />
                       <shadowMaterial opacity={0.3} />
                     </mesh>
                   )}
-
                 </Suspense>
 
-                <OrbitControls enableZoom={false} />
+                {/* ✅ Mobile rotate disabled */}
+
+                <OrbitControls
+                  enableZoom={false}
+                  enablePan={false}
+                  enableRotate={!isMobile}
+                />
 
               </Canvas>
 
