@@ -285,7 +285,7 @@ export default function Hero() {
             md:max-w-[500px]
             lg:max-w-[550px]
 
-            h-[260px]
+            h-[320px]
             sm:h-[380px]
             md:h-[480px]
             lg:h-[520px]
