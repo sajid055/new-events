@@ -3,6 +3,11 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --scrollbar-size: 12px;
+  --scrollbar-track: #e5e7eb;
+  --scrollbar-thumb-solid: #a855f7;
+  --scrollbar-thumb: linear-gradient(180deg, #9333ea 0%, #ec4899 100%);
+  --scrollbar-thumb-hover: linear-gradient(180deg, #7e22ce 0%, #db2777 100%);
 }
 
 @theme inline {
@@ -16,6 +21,10 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --scrollbar-track: #1f2937;
+    --scrollbar-thumb-solid: #c084fc;
+    --scrollbar-thumb: linear-gradient(180deg, #a855f7 0%, #ec4899 100%);
+    --scrollbar-thumb-hover: linear-gradient(180deg, #9333ea 0%, #db2777 100%);
   }
 }
 
@@ -23,4 +32,31 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Global custom scrollbar */
+html {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb-solid) var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar {
+  width: var(--scrollbar-size);
+  height: var(--scrollbar-size);
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px;
+  border: 2px solid var(--scrollbar-track);
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
 }
