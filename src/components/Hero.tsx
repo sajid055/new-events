@@ -40,8 +40,8 @@ function RobotModel({
   isTablet: boolean;
 }) {
   const group = useRef<THREE.Group>(null);
-
-  const { scene, animations } = useGLTF("/models/robot.glb");
+  const modelPath = isMobile ? "/models/robot2.glb" : "/models/robot.glb";
+  const { scene, animations } = useGLTF(modelPath);
   const { actions } = useAnimations(animations, group);
 
   const isMesh = (object: THREE.Object3D): object is THREE.Mesh => {
@@ -49,7 +49,7 @@ function RobotModel({
   };
 
   useEffect(() => {
-    if (actions) {
+    if (actions && !isMobile) {
       Object.values(actions).forEach((action) => {
         action?.reset().fadeIn(0.5).play();
       });
@@ -61,7 +61,7 @@ function RobotModel({
         child.receiveShadow = true;
       }
     });
-  }, [actions, scene]);
+  }, [actions, scene, isMobile]);
 
   /* ✅ Desktop rotation only */
 
@@ -70,8 +70,9 @@ function RobotModel({
     group.current.rotation.y += 0.002;
   });
 
-  const modelScale = isMobile ? 1.08 : isTablet ? 1.06 : 1.12;
-  const modelY = isMobile ? -0.8 : isTablet ? -0.7 : -0.9;
+  const modelScale = isMobile ? 0.6 : isTablet ? 1.06 : 1.12;
+  const modelY = isMobile ? -3.2 : isTablet ? -0.7 : -0.9;
+  const modelRotationY = 0;
 
   return (
     <Center>
@@ -80,6 +81,7 @@ function RobotModel({
         object={scene}
         scale={modelScale}
         position={[0, modelY, 0]}
+        rotation={[0, modelRotationY, 0]}
       />
     </Center>
   );
@@ -87,7 +89,13 @@ function RobotModel({
 
 /* -------------------- Rotating Text -------------------- */
 
-const words = ["AI & Coding", "Robotics", "Data Science", "ML & AI", "3D AR & VR"];
+const words = [
+  "AI & Coding",
+  "Robotics",
+  "Data Science",
+  "ML & AI",
+  "3D AR & VR",
+];
 
 function RotatingText() {
   const [index, setIndex] = useState(0);
@@ -109,7 +117,7 @@ function RotatingText() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -80, opacity: 0 }}
           transition={{ duration: 0.6 }}
-          className="font-bold block ml-auto w-fit
+          className="font-extrabold block w-fit mx-auto lg:mx-0
           text-3xl
           sm:text-4xl
           md:text-5xl
@@ -146,7 +154,9 @@ const fadeUp: Variants = {
 /* -------------------- Hero Section -------------------- */
 
 export default function Hero() {
-  const [viewportWidth, setViewportWidth] = useState(1200);
+  const [viewportWidth, setViewportWidth] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth : 1200,
+  );
 
   useEffect(() => {
     const updateViewport = () => setViewportWidth(window.innerWidth);
@@ -165,11 +175,8 @@ export default function Hero() {
 
   return (
     <section className="w-full min-h-[calc(100vh-64px)] flex items-center bg-[#f5f7fa] py-10 md:py-12">
-
       <div className="max-w-7xl mx-auto w-full px-4 sm:px-8 lg:px-12">
-
         <div className="flex flex-col-reverse items-center gap-10 lg:grid lg:grid-cols-2 lg:items-start lg:gap-12">
-
           {/* LEFT TEXT */}
 
           <motion.div
@@ -178,7 +185,6 @@ export default function Hero() {
             animate="show"
             className="flex flex-col justify-center text-center lg:text-left max-w-2xl mx-auto lg:mx-0 lg:self-start"
           >
-
             <motion.div
               variants={fadeUp}
               className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-blue-100 text-blue-600 text-xs sm:text-sm font-medium w-fit max-w-full text-center mx-auto lg:mx-0"
@@ -189,7 +195,7 @@ export default function Hero() {
 
             <motion.h1
               variants={fadeUp}
-              className="mt-6 font-bold text-gray-900 leading-tight
+              className="mt-6 font-extrabold text-gray-900 leading-tight
               text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl"
             >
               MiraiEvents <br />
@@ -221,16 +227,19 @@ export default function Hero() {
               Get Started
               <ArrowDown size={22} />
             </motion.button>
-
           </motion.div>
 
           {/* RIGHT ROBOT */}
 
           <div className="w-full flex items-center justify-center -mt-10 lg:mt-0 lg:self-start">
-
-            <div className="
+            <div
+              className="
             w-full
-            max-w-[360px]
+            -mx-4
+            w-[calc(100%+2rem)]
+            sm:mx-0
+            sm:w-full
+            max-w-none
             sm:max-w-[420px]
             md:max-w-[520px]
             lg:max-w-[600px]
@@ -241,22 +250,28 @@ export default function Hero() {
             md:h-[520px]
             lg:h-[600px]
             xl:h-[640px]
+            relative
             cursor-grab
-            ">
-
+            "
+            >
               <Canvas
                 shadows={!isMobile}
                 dpr={isMobile ? [1, 1] : [1, 2]}
-                gl={{ antialias: !isMobile, powerPreference: "high-performance" }}
-
+                gl={{
+                  antialias: !isMobile,
+                  powerPreference: "high-performance",
+                }}
                 /* ✅ Mobile Zoom Camera */
 
                 camera={{
-                  position: [0, isMobile ? 1 : isTablet ? 1.35 : 1.5, isMobile ? 5.2 : isTablet ? 7 : 6.6],
-                  fov: isMobile ? 45 : isTablet ? 46 : 42,
+                  position: [
+                    0,
+                    isMobile ? 1.2 : isTablet ? 1.35 : 1.5,
+                    isMobile ? 10.5 : isTablet ? 7 : 6.6,
+                  ],
+                  fov: isMobile ? 52 : isTablet ? 46 : 42,
                 }}
               >
-
                 <ambientLight intensity={0.6} />
 
                 <directionalLight
@@ -289,17 +304,14 @@ export default function Hero() {
                   enablePan={false}
                   enableRotate={!isMobile}
                 />
-
               </Canvas>
-
             </div>
-
           </div>
-
         </div>
-
       </div>
-
     </section>
   );
 }
+
+useGLTF.preload("/models/robot.glb");
+useGLTF.preload("/models/robot2.glb");
