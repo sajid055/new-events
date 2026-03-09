@@ -33,14 +33,15 @@ function Loader() {
 /* -------------------- Robot -------------------- */
 
 function RobotModel({
+  modelPath,
   isMobile,
   isTablet,
 }: {
+  modelPath: string;
   isMobile: boolean;
   isTablet: boolean;
 }) {
   const group = useRef<THREE.Group>(null);
-  const modelPath = isMobile ? "/models/robot2.glb" : "/models/robot.glb";
   const { scene, animations } = useGLTF(modelPath);
   const { actions } = useAnimations(animations, group);
 
@@ -72,6 +73,7 @@ function RobotModel({
 
   const modelScale = isMobile ? 0.6 : isTablet ? 1.06 : 1.12;
   const modelY = isMobile ? -3.2 : isTablet ? -0.7 : -0.9;
+  
   const modelRotationY = 0;
 
   return (
@@ -154,9 +156,7 @@ const fadeUp: Variants = {
 /* -------------------- Hero Section -------------------- */
 
 export default function Hero() {
-  const [viewportWidth, setViewportWidth] = useState(() =>
-    typeof window !== "undefined" ? window.innerWidth : 1200,
-  );
+  const [viewportWidth, setViewportWidth] = useState(0);
 
   useEffect(() => {
     const updateViewport = () => setViewportWidth(window.innerWidth);
@@ -168,6 +168,7 @@ export default function Hero() {
 
   const isMobile = viewportWidth < 768;
   const isTablet = viewportWidth >= 768 && viewportWidth < 1024;
+  const modelPath = isMobile ? "/models/robot2.glb" : "/models/robot.glb";
 
   const scrollToContact = () => {
     smoothScrollToId("contact");
@@ -254,7 +255,9 @@ export default function Hero() {
             cursor-grab
             "
             >
-              <Canvas
+              {viewportWidth > 0 ? (
+                <Canvas
+                  key={modelPath}
                 shadows={!isMobile}
                 dpr={isMobile ? [1, 1] : [1, 2]}
                 gl={{
@@ -271,6 +274,7 @@ export default function Hero() {
                   ],
                   fov: isMobile ? 52 : isTablet ? 46 : 42,
                 }}
+                
               >
                 <ambientLight intensity={0.6} />
 
@@ -282,8 +286,13 @@ export default function Hero() {
                 />
 
                 <Suspense fallback={<Loader />}>
-                  <RobotModel isMobile={isMobile} isTablet={isTablet} />
-                  <Environment preset="city" />
+                  <RobotModel
+                    key={modelPath}
+                    modelPath={modelPath}
+                    isMobile={isMobile}
+                    isTablet={isTablet}
+                  />
+                  {!isMobile && <Environment preset="city" />}
 
                   {!isMobile && (
                     <mesh
@@ -304,7 +313,10 @@ export default function Hero() {
                   enablePan={false}
                   enableRotate={!isMobile}
                 />
-              </Canvas>
+                </Canvas>
+              ) : (
+                <div className="w-full h-full" />
+              )}
             </div>
           </div>
         </div>

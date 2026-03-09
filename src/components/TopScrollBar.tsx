@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 export default function TopScrollBar() {
   const items = [
     "✨Smart Event Management",
-    "📔 Book Venues Instantly",
+    "📆 Book Venues Instantly",
     "🎟️ Seamless Ticketing & Payments",
     "💬 Engage Attendees Effortlessly",
     "📊 Real-Time Analytics Dashboard",
