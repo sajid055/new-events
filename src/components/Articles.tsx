@@ -4,7 +4,7 @@ import { motion, type Variants } from "framer-motion";
 
 const articles = [
   {
-    title: "Transforming Education with AI & Robotics",
+    title: "Transforming Education with AI, ML & Robotics",
     description:
       "MiraiRobotics focuses on empowering students with hands-on learning in Artificial Intelligence, Coding, and Robotics. The goal is to prepare young innovators for future technologies through practical education.",
   },
